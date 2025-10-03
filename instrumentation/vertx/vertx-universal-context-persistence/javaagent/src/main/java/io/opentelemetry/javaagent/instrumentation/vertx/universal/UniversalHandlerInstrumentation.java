@@ -110,16 +110,6 @@ public final class UniversalHandlerInstrumentation implements TypeInstrumentatio
       methodMatcher = methodMatcher.and(isPrivate());
     }
     
-//    System.out.println(
-//        "UNIVERSAL-CONTEXT-STORAGE-NEW-TRANSFORM: "
-//            + adviceClassName
-//            + "\n"
-//            + target.getMethodName()
-//            + "\n"
-//            + target.getNumberOfArgs()
-//            + "\n"
-//            + "Private: " + target.isPrivate());
-    
     transformer.applyAdviceToMethod(methodMatcher, adviceClassName);
   }
 
@@ -131,11 +121,6 @@ public final class UniversalHandlerInstrumentation implements TypeInstrumentatio
     @Advice.OnMethodEnter(suppress = Throwable.class)
     @Advice.AssignReturned.ToArguments(@Advice.AssignReturned.ToArguments.ToArgument(0))
     public static Handler<?> onEnter(@Advice.Argument(0) Handler<?> handler) {
-//      System.out.println(
-//          "UNIVERSAL-WRAP-ARG0: Wrapping handler "
-//              + (handler != null ? handler.getClass().getSimpleName() : "null")
-//              + " on thread "
-//              + Thread.currentThread().getName());
       return UniversalContextPreservingHandler.wrap(handler);
     }
   }
@@ -163,11 +148,6 @@ public final class UniversalHandlerInstrumentation implements TypeInstrumentatio
     @Advice.OnMethodEnter(suppress = Throwable.class)
     @Advice.AssignReturned.ToArguments(@Advice.AssignReturned.ToArguments.ToArgument(2))
     public static Handler<?> onEnter(@Advice.Argument(2) Handler<?> handler) {
-//      System.out.println(
-//          "UNIVERSAL-WRAP-ARG2: Wrapping handler "
-//              + (handler != null ? handler.getClass().getSimpleName() : "null")
-//              + " on thread "
-//              + Thread.currentThread().getName());
       return UniversalContextPreservingHandler.wrap(handler);
     }
   }
@@ -179,11 +159,6 @@ public final class UniversalHandlerInstrumentation implements TypeInstrumentatio
     @Advice.OnMethodEnter(suppress = Throwable.class)
     @Advice.AssignReturned.ToArguments(@Advice.AssignReturned.ToArguments.ToArgument(3))
     public static Handler<?> onEnter(@Advice.Argument(3) Handler<?> handler) {
-//      System.out.println(
-//          "UNIVERSAL-WRAP-ARG3: Wrapping handler "
-//              + (handler != null ? handler.getClass().getSimpleName() : "null")
-//              + " on thread "
-//              + Thread.currentThread().getName());
       return UniversalContextPreservingHandler.wrap(handler);
     }
   }
@@ -197,17 +172,10 @@ public final class UniversalHandlerInstrumentation implements TypeInstrumentatio
     public static void onEnter(@Advice.This Object target) {
       // Get current OpenTelemetry context
       io.opentelemetry.context.Context currentContext = io.opentelemetry.context.Context.current();
-      
-//      System.out.println("UNIVERSAL-METHOD-ENTER: " + target.getClass().getSimpleName() + " - Context: " + currentContext);
-      
+
       // Special handling for HttpServerRequest.pause() method
       if (target instanceof io.vertx.core.http.HttpServerRequest) {
         io.vertx.core.http.HttpServerRequest request = (io.vertx.core.http.HttpServerRequest) target;
-        
-        // Inject custom header
-//        request.headers().set("whos.the.sexy", "supermanu");
-        
-//        System.out.println("UNIVERSAL-HEADER-INJECTION: " + request.uri() + " - Context: " + currentContext);
       }
     }
   }
@@ -219,12 +187,10 @@ public final class UniversalHandlerInstrumentation implements TypeInstrumentatio
 
     @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void onEnter(@Advice.Argument(0) io.vertx.core.http.HttpServerRequest request) {
-//      System.out.println("RESTEASY-HANDLER-ENTER: Processing request: " + request.uri());
-      
+
       // Extract the injected traceId from header
       String traceId = request.getHeader("otel.injected_trace_context");
-//      System.out.println("RESTEASY-CONTEXT-EXTRACTION: Injected traceId from header: " + traceId);
-      
+
       if (traceId != null && !traceId.isEmpty()) {
         // Try to extract context from Vertx context using the traceId as key
         io.vertx.core.Context vertxContext = io.vertx.core.Vertx.currentContext();
@@ -233,21 +199,13 @@ public final class UniversalHandlerInstrumentation implements TypeInstrumentatio
           io.opentelemetry.context.Context storedContext = vertxContext.get("otel.context." + traceId);
           
           if (storedContext != null) {
-//            System.out.println("RESTEASY-CONTEXT-RESTORED: Found stored context for traceId " + traceId + ": " + storedContext);
             // Set the context as current
             try (io.opentelemetry.context.Scope scope = storedContext.makeCurrent()) {
-//              System.out.println("RESTEASY-CONTEXT-ACTIVE: Context is now active");
               // Store in standard otel.context key for other handlers
               vertxContext.put("otel.context", storedContext);
             }
-          } else {
-//            System.out.println("RESTEASY-CONTEXT-NOT-FOUND: No stored context found for traceId: " + traceId);
           }
-        } else {
-//          System.out.println("RESTEASY-NO-VERTX-CONTEXT: No Vertx context available");
         }
-      } else {
-//        System.out.println("RESTEASY-NO-INJECTED-CONTEXT: No injected trace context found in headers");
       }
     }
   }
@@ -259,12 +217,10 @@ public final class UniversalHandlerInstrumentation implements TypeInstrumentatio
 
     @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void onEnter(@Advice.Argument(0) io.vertx.core.http.HttpServerRequest request) {
-//      System.out.println("ROUTER-HANDLER-ENTER: Processing request: " + request.uri());
-      
+
       // Extract the injected traceId from header
       String traceId = request.getHeader("otel.injected_trace_context");
-//      System.out.println("ROUTER-CONTEXT-EXTRACTION: Injected traceId from header: " + traceId);
-      
+
       if (traceId != null && !traceId.isEmpty()) {
         // Try to extract context from Vertx context using the traceId as key
         io.vertx.core.Context vertxContext = io.vertx.core.Vertx.currentContext();
@@ -273,21 +229,13 @@ public final class UniversalHandlerInstrumentation implements TypeInstrumentatio
           io.opentelemetry.context.Context storedContext = vertxContext.get("otel.context." + traceId);
           
           if (storedContext != null) {
-//            System.out.println("ROUTER-CONTEXT-RESTORED: Found stored context for traceId " + traceId + ": " + storedContext);
             // Set the context as current
             try (io.opentelemetry.context.Scope scope = storedContext.makeCurrent()) {
-//              System.out.println("ROUTER-CONTEXT-ACTIVE: Context is now active");
               // Store in standard otel.context key for other handlers
               vertxContext.put("otel.context", storedContext);
             }
-          } else {
-//            System.out.println("ROUTER-CONTEXT-NOT-FOUND: No stored context found for traceId: " + traceId);
           }
-        } else {
-//          System.out.println("ROUTER-NO-VERTX-CONTEXT: No Vertx context available");
         }
-      } else {
-//        System.out.println("ROUTER-NO-INJECTED-CONTEXT: No injected trace context found in headers");
       }
     }
   }
@@ -299,15 +247,13 @@ public final class UniversalHandlerInstrumentation implements TypeInstrumentatio
 
     @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void onEnter(@Advice.Argument(0) io.vertx.reactivex.ext.web.RoutingContext routingContext) {
-//      System.out.println("ABSTRACT-ROUTE-HANDLER-ENTER: Processing route: " + routingContext.request().uri());
-      
+
       // Get the HttpServerRequest from RoutingContext (get delegate from reactivex)
       io.vertx.core.http.HttpServerRequest request = routingContext.request().getDelegate();
       
       // Extract the injected traceId from header
       String traceId = request.getHeader("otel.injected_trace_context");
-//      System.out.println("ABSTRACT-ROUTE-CONTEXT-EXTRACTION: Injected traceId from header: " + traceId);
-      
+
       if (traceId != null && !traceId.isEmpty()) {
         // Try to extract context from Vertx context using the traceId as key
         io.vertx.core.Context vertxContext = io.vertx.core.Vertx.currentContext();
@@ -316,21 +262,13 @@ public final class UniversalHandlerInstrumentation implements TypeInstrumentatio
           io.opentelemetry.context.Context storedContext = vertxContext.get("otel.context." + traceId);
           
           if (storedContext != null) {
-//            System.out.println("ABSTRACT-ROUTE-CONTEXT-RESTORED: Found stored context for traceId " + traceId + ": " + storedContext);
             // Set the context as current
             try (io.opentelemetry.context.Scope scope = storedContext.makeCurrent()) {
-//              System.out.println("ABSTRACT-ROUTE-CONTEXT-ACTIVE: Context is now active");
               // Store in standard otel.context key for other handlers
               vertxContext.put("otel.context", storedContext);
             }
-          } else {
-//            System.out.println("ABSTRACT-ROUTE-CONTEXT-NOT-FOUND: No stored context found for traceId: " + traceId);
           }
-        } else {
-//          System.out.println("ABSTRACT-ROUTE-NO-VERTX-CONTEXT: No Vertx context available");
         }
-      } else {
-//        System.out.println("ABSTRACT-ROUTE-NO-INJECTED-CONTEXT: No injected trace context found in headers");
       }
     }
   }

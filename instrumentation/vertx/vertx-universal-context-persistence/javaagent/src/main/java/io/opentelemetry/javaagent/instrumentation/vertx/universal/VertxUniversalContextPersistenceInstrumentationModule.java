@@ -158,8 +158,6 @@ public class VertxUniversalContextPersistenceInstrumentationModule extends Instr
     instrumentations.add(new VertxContextStorageInstrumentation());
 
     // Add all the handler wrapping instrumentations
-//    System.out.println(
-//        "UNIVERSAL-MODULE: Adding " + TARGETS.size() + " universal handler instrumentations");
     instrumentations.addAll(
         TARGETS.stream().map(UniversalHandlerInstrumentation::new).collect(Collectors.toList()));
 
