@@ -42,7 +42,7 @@ public final class RoutingContextHandlerWrapper implements Handler<RoutingContex
         route = route.substring(0, route.length() - 1);
       }
       HttpServerRoute.update(parentContext, HttpServerRouteSource.NESTED_CONTROLLER, route);
-
+//    try (Scope ignore = RouteHolder.init(parentContext, route).makeCurrent()) {
       handler.handle(context);
 
     } catch (Throwable throwable) {

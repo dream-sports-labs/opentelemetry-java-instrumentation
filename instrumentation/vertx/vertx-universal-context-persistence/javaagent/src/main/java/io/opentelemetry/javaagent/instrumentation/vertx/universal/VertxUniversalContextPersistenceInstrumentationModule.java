@@ -155,7 +155,7 @@ public class VertxUniversalContextPersistenceInstrumentationModule extends Instr
     List<TypeInstrumentation> instrumentations = new ArrayList<>();
 
     // Add the context storage instrumentation (like SQL did)
-    instrumentations.add(new VertxContextStorageInstrumentation());
+//    instrumentations.add(new VertxContextStorageInstrumentation());
 
     // Add all the handler wrapping instrumentations
     instrumentations.addAll(
